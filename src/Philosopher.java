@@ -42,7 +42,6 @@ public class Philosopher implements Runnable {
     table.movePhilosopher();
   }
 
-
   public void think() {
     try {
       // Think for a random duration (0 - 10 seconds)

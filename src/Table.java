@@ -46,18 +46,14 @@ public class Table {
     return forks[rightForkIndex];
   }
 
-  public ReentrantLock dropLeftFork(int philosopherIndex) {
+  public void dropLeftFork(int philosopherIndex) {
     int leftForkIndex = philosopherIndex;
     leftForkInUse[leftForkIndex] = false;
-
-    return forks[leftForkIndex];
   }
 
-  public ReentrantLock dropRightFork(int philosopherIndex) {
+  public void dropRightFork(int philosopherIndex) {
     int rightForkIndex = (philosopherIndex + 1) % seats;
     rightForkInUse[rightForkIndex] = false;
-
-    return forks[rightForkIndex];
   }
 
   public boolean isDeadlockDetected() {
@@ -90,6 +86,13 @@ public class Table {
     // Move the philosopher to an empty table (create a new thread for the philosopher)
     if (philosopherIndex != -1) {
       System.out.println("Moving philosopher " + (philosopherIndex + 1) + " to an empty table.");
+
+      // Release the forks in the original table
+      dropLeftFork(philosopherIndex);
+      dropRightFork(philosopherIndex);
+
+      // Start the thread for the moved philosopher in the empty table
+      philosophers[philosopherIndex] = new Philosopher("Philosopher " + (philosopherIndex + 1), this, philosopherIndex);
       Thread newThread = new Thread(philosophers[philosopherIndex]);
       newThread.start();
     }
