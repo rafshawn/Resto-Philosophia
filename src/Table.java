@@ -17,10 +17,17 @@ public class Table {
     this.seats = seats;
     this.philosophers = new Philosopher[seats];
     this.forks = new Object[seats];
+    this.leftForkInUse = new boolean[seats];
+    this.rightForkInUse = new boolean[seats];
 
     // Initialize philosophers
     for (int i = 0; i < seats; i++) {
       philosophers[i] = new Philosopher("Philosopher " + (i + 1), this);
+    }
+
+    // Initialize forks
+    for (int i = 0; i < seats; i++) {
+      forks[i] = new Object();
     }
   }
 
@@ -39,14 +46,18 @@ public class Table {
     return forks[rightForkIndex];
   }
 
-  public void dropLeftFork(int philosopherIndex) {
+  public Object dropLeftFork(int philosopherIndex) {
     int leftForkIndex = philosopherIndex;
     leftForkInUse[leftForkIndex] = false;
+
+    return forks[leftForkIndex];
   }
 
-  public void dropRightFork(int philosopherIndex) {
+  public Object dropRightFork(int philosopherIndex) {
     int rightForkIndex = (philosopherIndex + 1) % seats;
     rightForkInUse[rightForkIndex] = false;
+
+    return forks[rightForkIndex];
   }
 
   public boolean isDeadlockDetected() {
@@ -66,5 +77,21 @@ public class Table {
   }
 
   public void movePhilosopher() {
+    // Handle deadlock by moving one philosopher to an empty table
+    // Find the philosopher index with the leftmost fork in use
+    int philosopherIndex = -1;
+    for (int i = 0; i < seats; i++) {
+      if (leftForkInUse[i]) {
+        philosopherIndex = i;
+        break;
+      }
+    }
+
+    // Move the philosopher to an empty table (create a new thread for the philosopher)
+    if (philosopherIndex != -1) {
+      System.out.println("Moving philosopher " + (philosopherIndex + 1) + " to an empty table.");
+      Thread newThread = new Thread(philosophers[philosopherIndex]);
+      newThread.start();
+    }
   }
 }

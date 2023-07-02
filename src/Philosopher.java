@@ -1,5 +1,3 @@
-import java.util.Random;
-
 /**
  * Philosopher
  * ------------
@@ -9,6 +7,7 @@ import java.util.Random;
 public class Philosopher implements Runnable {
   private String name;
   private Table table;
+  private int philosopherIndex;
 
   // Constructor
   public Philosopher(String name, Table table) {
@@ -18,47 +17,40 @@ public class Philosopher implements Runnable {
 
 @Override
 public void run() {
-  try {
-    boolean isDeadlocked = false;
+  boolean isDeadlocked = false;
 
-    while (!isDeadlocked) {
-      think();
-      pickUpFork();
-      eat();
-      putDownFork();
+  while (!isDeadlocked) {
+    think();
+    pickUpFork();
+    eat();
+    putDownFork();
 
-      isDeadlocked = table.isDeadlockDetected();
-      if (isDeadlocked) {
-        break;
-      }
+    isDeadlocked = table.isDeadlockDetected();
+    if (isDeadlocked) {
+      break;
     }
-
-    // Handle deadlock by moving one philosopher to empty table
-    table.movePhilosopher();
-
-  } catch (InterruptedException e) {
-    e.printStackTrace();
   }
+
+  // Handle deadlock by moving one philosopher to empty table
+  table.movePhilosopher();
 }
   
 public void think() {
   try {
+    // Think for a random duration (0 - 10 seconds)
     System.out.println(name + " is thinking");
     Thread.sleep((int)(Math.random() * 10000));
-    pickUpFork();
   } catch (InterruptedException e) {
     e.printStackTrace();
   }
 }
 
 public void pickUpFork() {
-  synchronized (table.getLeftFork()) {
+  synchronized (table.getLeftFork(philosopherIndex)) {
     System.out.println(name + " picks up left fork");
 
-    synchronized (table.getRightFork()) {
+    synchronized (table.getRightFork(philosopherIndex)) {
       System.out.println(name + " picks up right fork");
-
-      eat();
     }
   }
 }
@@ -74,11 +66,11 @@ public void eat() {
 }
 
   public void putDownFork() {
-    synchronized (table.dropLeftFork()) {
-      System.out.println(name + " puts down left fork");
+    synchronized (table.dropRightFork(philosopherIndex)) {
+      System.out.println(name + " puts down right fork");
 
-      synchronized (table.dropRightFork()) {
-        System.out.println(name + " puts down right fork");
+      synchronized (table.dropLeftFork(philosopherIndex)) {
+        System.out.println(name + " puts down left fork");
       }
     }
   }

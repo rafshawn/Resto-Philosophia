@@ -1,28 +1,31 @@
-/*
- * TODO:
- * - Initialize tables and philosophers
- * - Coordinate their actions
- * - Check for deadlock
- * - Start simulation
- */
-
 public class Main {
   public static void main(String[] args) {
-    int numPhilosophers = 5; // Number of philosophers
-    Table table = new Table(numPhilosophers); // Create the table
+    int numTables = 2;
+    int numPhilosophers = 5; // # of philosophers per table
+
+    // Create tables
+    Table[] tables = new Table[numTables];
+    for (int i = 0; i < numTables; i++) {
+      tables[i] = new Table(numPhilosophers);
+    }
 
     // Create and start philosopher threads
-    Thread[] philosopherThreads = new Thread[numPhilosophers];
-    for (int i = 0; i < numPhilosophers; i++) {
-      Philosopher philosopher = new Philosopher("Philosopher " + (i + 1), table);
-      philosopherThreads[i] = new Thread(philosopher);
-      philosopherThreads[i].start();
+    Thread[][] philosopherThreads = new Thread[numTables][numPhilosophers];
+    for (int i = 0; i < numTables; i++) { 
+      Table table = tables[i];
+      for (int j = 0; j < numPhilosophers; j++) {
+        Philosopher philosopher = new Philosopher("Philosopher " + (j + 1), table);
+        philosopherThreads[i][j] = new Thread(philosopher);
+        philosopherThreads[i][j].start();
+      }
     }
 
     // Wait for philosopher threads to complete
     try {
-      for (Thread philosopherThread : philosopherThreads) {
-        philosopherThread.join();
+      for (int i = 0; i < numTables; i++) {
+        for (int j = 0; j < numPhilosophers; j++) {
+          philosopherThreads[i][j].join();
+        }
       }
     } catch (InterruptedException e) {
       e.printStackTrace();
