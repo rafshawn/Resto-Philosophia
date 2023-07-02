@@ -1,3 +1,5 @@
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Philosopher
  * ------------
@@ -7,13 +9,15 @@
 public class Philosopher implements Runnable {
   private String name;
   private Table table;
-  private int philosopherIndex;
+  private ReentrantLock leftFork;
+  private ReentrantLock rightFork;
 
   // Constructor
-  public Philosopher(String name, Table table) {
+  public Philosopher(String name, Table table, int philosopherIndex) {
     this.name = name;
     this.table = table;
-    this.philosopherIndex = -1; // Initialize philosopherIndex
+    this.leftFork = table.getLeftFork(philosopherIndex);
+    this.rightFork = table.getRightFork(philosopherIndex);
   }
 
   @Override
@@ -50,13 +54,11 @@ public class Philosopher implements Runnable {
   }
   
   public void pickUpFork() {
-    synchronized (table.getLeftFork(philosopherIndex)) {
-      System.out.println(name + " picks up left fork");
-    
-      synchronized (table.getRightFork(philosopherIndex)) {
-        System.out.println(name + " picks up right fork");
-      }
-    }
+    leftFork.lock();
+    System.out.println(name + " picks up left fork");
+
+    rightFork.lock();
+    System.out.println(name + " picks up right fork");
   }
   
   public void eat() {
@@ -70,17 +72,10 @@ public class Philosopher implements Runnable {
   }
 
   public void putDownFork() {
-    synchronized (table.dropRightFork(philosopherIndex)) {
-      System.out.println(name + " puts down right fork");
+    rightFork.unlock();
+    System.out.println(name + " puts down right fork");
 
-      synchronized (table.dropLeftFork(philosopherIndex)) {
-        System.out.println(name + " puts down left fork");
-      }
-    }
-  }
-
-  // Setters
-  public void setPhilosopherIndex(int index) {
-    this.philosopherIndex = index;
+    leftFork.unlock();
+    System.out.println(name + " puts down left fork");
   }
 }

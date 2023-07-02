@@ -14,7 +14,7 @@ public class Main {
     for (int i = 0; i < numTables; i++) { 
       Table table = tables[i];
       for (int j = 0; j < numPhilosophers; j++) {
-        Philosopher philosopher = new Philosopher("Philosopher " + (j + 1), table);
+        Philosopher philosopher = new Philosopher("Philosopher " + (j + 1), table, j);
         philosopherThreads[i][j] = new Thread(philosopher);
         philosopherThreads[i][j].start();
       }

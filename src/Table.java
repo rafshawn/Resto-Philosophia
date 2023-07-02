@@ -1,3 +1,5 @@
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Table
  * ------------
@@ -8,7 +10,7 @@
 public class Table {
   private int seats;
   private Philosopher[] philosophers;
-  private Object[] forks;
+  private ReentrantLock[] forks;
   private boolean[] leftForkInUse;
   private boolean[] rightForkInUse;
 
@@ -16,45 +18,42 @@ public class Table {
   public Table(int seats) {
     this.seats = seats;
     this.philosophers = new Philosopher[seats];
-    this.forks = new Object[seats];
+    this.forks = new ReentrantLock[seats];
     this.leftForkInUse = new boolean[seats];
     this.rightForkInUse = new boolean[seats];
 
-    // Initialize philosophers
+    // Initialize philosophers and forks
     for (int i = 0; i < seats; i++) {
-      philosophers[i] = new Philosopher("Philosopher " + (i + 1), this);
-      philosophers[i].setPhilosopherIndex(i);
-    }
-
-    // Initialize forks
-    for (int i = 0; i < seats; i++) {
-      forks[i] = new Object();
+      philosophers[i] = new Philosopher("Philosopher " + (i + 1), this, i);
+      forks[i] = new ReentrantLock();
+      leftForkInUse[i] = false;
+      rightForkInUse[i] = false;
     }
   }
 
   // Methods
-  public Object getLeftFork(int philosopherIndex) {
+  public ReentrantLock getLeftFork(int philosopherIndex) {
     int leftForkIndex = philosopherIndex;
     leftForkInUse[leftForkIndex] = true;
 
     return forks[leftForkIndex];
   }
 
-  public Object getRightFork(int philosopherIndex) {
+  public ReentrantLock getRightFork(int philosopherIndex) {
     int rightForkIndex = (philosopherIndex + 1) % seats;
     rightForkInUse[rightForkIndex] = true;
 
     return forks[rightForkIndex];
   }
 
-  public Object dropLeftFork(int philosopherIndex) {
+  public ReentrantLock dropLeftFork(int philosopherIndex) {
     int leftForkIndex = philosopherIndex;
     leftForkInUse[leftForkIndex] = false;
 
     return forks[leftForkIndex];
   }
 
-  public Object dropRightFork(int philosopherIndex) {
+  public ReentrantLock dropRightFork(int philosopherIndex) {
     int rightForkIndex = (philosopherIndex + 1) % seats;
     rightForkInUse[rightForkIndex] = false;
 
