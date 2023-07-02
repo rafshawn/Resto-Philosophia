@@ -10,7 +10,7 @@ public class DeadlockTest {
   @Test
   public void testNoDeadlockDetected() {
     // Create a new table with 3 seats
-    Table table = new Table(3);
+    Table table = new Table(1, 3);
 
     // Set the left forks to be not in use
     table.getLeftForkInUse()[0] = false;
@@ -23,7 +23,7 @@ public class DeadlockTest {
     table.getRightForkInUse()[2] = true;
 
     // Check if there is a deadlock detected on the table
-    boolean result1 = table.isDeadlockDetected();
+    boolean result1 = table.isDeadlockDetected(1);
 
     // Assert that no deadlock is detected
     assertFalse(result1);
@@ -35,7 +35,7 @@ public class DeadlockTest {
   @Test
   public void testPotentialDeadlockDetected() {
     // Create a new table with 3 seats
-    Table table = new Table(3);
+    Table table = new Table(2, 3);
 
     // Set the left forks for all seats as in use
     table.getLeftForkInUse()[0] = true;
@@ -48,7 +48,7 @@ public class DeadlockTest {
     table.getRightForkInUse()[2] = true;
 
     // Check if a deadlock is detected
-    boolean result2 = table.isDeadlockDetected();
+    boolean result2 = table.isDeadlockDetected(2);
 
     // Assert that a deadlock is detected
     assertTrue(result2);

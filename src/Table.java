@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 
 public class Table {
+  private int tableNumber;
   private int seats;
   private Philosopher[] philosophers;
   private ReentrantLock[] forks;
@@ -15,7 +16,8 @@ public class Table {
   private boolean[] rightForkInUse;
 
   // Constructor
-  public Table(int seats) {
+  public Table(int tableNumber, int seats) {
+    this.tableNumber = tableNumber;
     this.seats = seats;
     this.philosophers = new Philosopher[seats];
     this.forks = new ReentrantLock[seats];
@@ -24,7 +26,8 @@ public class Table {
 
     // Initialize philosophers and forks
     for (int i = 0; i < seats; i++) {
-      philosophers[i] = new Philosopher("Philosopher " + (i + 1), this, i);
+      String philosopherName = Character.toString((char) ('A' + i));
+      philosophers[i] = new Philosopher("Philosopher " + philosopherName, this, tableNumber, philosopherName);
       forks[i] = new ReentrantLock();
       leftForkInUse[i] = false;
       rightForkInUse[i] = false;
@@ -32,14 +35,16 @@ public class Table {
   }
 
   // Methods
-  public ReentrantLock getLeftFork(int philosopherIndex) {
+  public ReentrantLock getLeftFork(String philosopherLetter) {
+    int philosopherIndex = philosopherLetter.charAt(0) - 'A';
     int leftForkIndex = philosopherIndex;
     leftForkInUse[leftForkIndex] = true;
 
     return forks[leftForkIndex];
   }
 
-  public ReentrantLock getRightFork(int philosopherIndex) {
+  public ReentrantLock getRightFork(String philosopherLetter) {
+    int philosopherIndex = philosopherLetter.charAt(0) - 'A';
     int rightForkIndex = (philosopherIndex + 1) % seats;
     rightForkInUse[rightForkIndex] = true;
 
@@ -56,7 +61,7 @@ public class Table {
     rightForkInUse[rightForkIndex] = false;
   }
 
-  public boolean isDeadlockDetected() {
+  public boolean isDeadlockDetected(int tableNumber) {
     // Implement deadlock detection logic
     for (int i = 0; i < seats; i++) {
       int leftForkIndex = i;
@@ -65,11 +70,15 @@ public class Table {
 
       // Check if the philosopher is holding the left fork and the right fork is already in use by the next philosopher
       if (leftForkInUse[leftForkIndex] && rightForkInUse[rightForkIndex] && leftForkInUse[nextPhilosopherIndex]) {
-        return true; // Deadlock detected
+        System.out.println("Deadlock detected in table " + tableNumber + ".\n");
+
+        return true;
       }
     }
 
-    return false; // No deadlock detected
+    System.out.println("No deadlock detected in table" +  tableNumber + ".\n");
+
+    return false;
   }
 
   public void movePhilosopher() {
@@ -85,14 +94,15 @@ public class Table {
 
     // Move the philosopher to an empty table (create a new thread for the philosopher)
     if (philosopherIndex != -1) {
-      System.out.println("Moving philosopher " + (philosopherIndex + 1) + " to an empty table.");
+      String philosopherName = Character.toString((char) ('A' + philosopherIndex));
+      System.out.println("Moving philosopher " + philosopherName + " to an empty table.");
 
       // Release the forks in the original table
       dropLeftFork(philosopherIndex);
       dropRightFork(philosopherIndex);
 
       // Start the thread for the moved philosopher in the empty table
-      philosophers[philosopherIndex] = new Philosopher("Philosopher " + (philosopherIndex + 1), this, philosopherIndex);
+      philosophers[philosopherIndex] = new Philosopher("Philosopher " + philosopherName, this, tableNumber, philosopherName);
       Thread newThread = new Thread(philosophers[philosopherIndex]);
       newThread.start();
     }

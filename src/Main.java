@@ -6,7 +6,7 @@ public class Main {
     // Create tables
     Table[] tables = new Table[numTables];
     for (int i = 0; i < numTables; i++) {
-      tables[i] = new Table(numPhilosophers);
+      tables[i] = new Table(i + 1, numPhilosophers);
     }
 
     // Create and start philosopher threads
@@ -14,7 +14,8 @@ public class Main {
     for (int i = 0; i < numTables; i++) { 
       Table table = tables[i];
       for (int j = 0; j < numPhilosophers; j++) {
-        Philosopher philosopher = new Philosopher("Philosopher " + (j + 1), table, j);
+        String philosopherName = Character.toString((char) ('A' + j));
+        Philosopher philosopher = new Philosopher("Philosopher " + philosopherName, table, i + 1, philosopherName);
         philosopherThreads[i][j] = new Thread(philosopher);
         philosopherThreads[i][j].start();
       }

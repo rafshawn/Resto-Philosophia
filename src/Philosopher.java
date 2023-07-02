@@ -9,15 +9,18 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Philosopher implements Runnable {
   private String name;
   private Table table;
+  private int tableNumber;
   private ReentrantLock leftFork;
   private ReentrantLock rightFork;
 
   // Constructor
-  public Philosopher(String name, Table table, int philosopherIndex) {
+  public Philosopher(String name, Table table, int tableNumber, String philosopherName) {
     this.name = name;
     this.table = table;
-    this.leftFork = table.getLeftFork(philosopherIndex);
-    this.rightFork = table.getRightFork(philosopherIndex);
+    this.tableNumber = tableNumber;
+    int philosopherIndex = philosopherName.charAt(0) - 'A';
+    this.leftFork = table.getLeftFork(philosopherName);
+    this.rightFork = table.getRightFork(philosopherName);
   }
 
   @Override
@@ -31,7 +34,7 @@ public class Philosopher implements Runnable {
       putDownFork();
 
       synchronized (table) {
-        isDeadlocked = table.isDeadlockDetected();
+        isDeadlocked = table.isDeadlockDetected(tableNumber);
         if (isDeadlocked) {
           break;
         }
@@ -54,10 +57,10 @@ public class Philosopher implements Runnable {
   
   public void pickUpFork() {
     leftFork.lock();
-    System.out.println(name + " picks up left fork");
+    System.out.println(name + " picks up left fork from table " + tableNumber);
 
     rightFork.lock();
-    System.out.println(name + " picks up right fork");
+    System.out.println(name + " picks up right fork from table " + tableNumber);
   }
   
   public void eat() {
@@ -72,9 +75,9 @@ public class Philosopher implements Runnable {
 
   public void putDownFork() {
     rightFork.unlock();
-    System.out.println(name + " puts down right fork");
+    System.out.println(name + " puts down right fork from table " + tableNumber);
 
     leftFork.unlock();
-    System.out.println(name + " puts down left fork");
+    System.out.println(name + " puts down left fork from table " + tableNumber);
   }
 }
