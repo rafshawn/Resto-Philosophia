@@ -23,6 +23,7 @@ public class Table {
     // Initialize philosophers
     for (int i = 0; i < seats; i++) {
       philosophers[i] = new Philosopher("Philosopher " + (i + 1), this);
+      philosophers[i].setPhilosopherIndex(i);
     }
 
     // Initialize forks
@@ -62,17 +63,17 @@ public class Table {
 
   public boolean isDeadlockDetected() {
     // Implement deadlock detection logic
-    // Check if all left forks are in use while at least one right fork is not in use
     for (int i = 0; i < seats; i++) {
-      if (!leftForkInUse[i]) {
-        return false; // Not all left forks are in use, no deadlock
+      int leftForkIndex = i;
+      int rightForkIndex = (i + 1) % seats;
+      int nextPhilosopherIndex = (i + 1) % seats;
+
+      // Check if the philosopher is holding the left fork and the right fork is already in use by the next philosopher
+      if (leftForkInUse[leftForkIndex] && rightForkInUse[rightForkIndex] && leftForkInUse[nextPhilosopherIndex]) {
+        return true; // Deadlock detected
       }
     }
-    for (int i = 0; i < seats; i++) {
-      if (!rightForkInUse[i]) {
-        return true; // At least one right fork is not in use, potential deadlock
-      }
-    }
+
     return false; // No deadlock detected
   }
 
@@ -94,4 +95,18 @@ public class Table {
       newThread.start();
     }
   }
+
+  // Getters
+  public boolean[] getLeftForkInUse() {
+    return leftForkInUse;
+  }
+
+  public boolean[] getRightForkInUse() {
+    return rightForkInUse;
+  }
+
+  public int getSeats() {
+    return seats;
+  }
+  
 }
