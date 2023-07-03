@@ -70,7 +70,7 @@ public class Table {
 
       // Check if the philosopher is holding the left fork and the right fork is already in use by the next philosopher
       if (leftForkInUse[leftForkIndex] && rightForkInUse[rightForkIndex] && leftForkInUse[nextPhilosopherIndex]) {
-        System.out.println("Deadlock detected in table " + tableNumber + ".\n");
+        System.out.println("\nDeadlock detected in table " + tableNumber + ".");
 
         return true;
       }
@@ -93,18 +93,16 @@ public class Table {
     }
 
     // Move the philosopher to an empty table (create a new thread for the philosopher)
-    if (philosopherIndex != -1) {
-      String philosopherName = Character.toString((char) ('A' + philosopherIndex));
-      System.out.println("Moving philosopher " + philosopherName + " to an empty table.");
+    if (philosopherIndex != -1 && tableNumber != Main.getNumTables()) {
+      String philosopherName = philosophers[philosopherIndex].getName();
+      System.out.println("Moving " + philosopherName + " to an empty table.\n");
 
       // Release the forks in the original table
       dropLeftFork(philosopherIndex);
       dropRightFork(philosopherIndex);
 
-      // Start the thread for the moved philosopher in the empty table
-      philosophers[philosopherIndex] = new Philosopher("Philosopher " + philosopherName, this, tableNumber, philosopherName);
-      Thread newThread = new Thread(philosophers[philosopherIndex]);
-      newThread.start();
+      // Update the philosopher's table number
+      philosophers[philosopherIndex].setTableNumber(tableNumber);
     }
   }
 

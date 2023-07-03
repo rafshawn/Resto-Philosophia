@@ -26,17 +26,26 @@ public class Philosopher implements Runnable {
   @Override
   public void run() {
     boolean isDeadlocked = false;
+    Object deadlockDetectionLock = new Object();
 
     while (!isDeadlocked) {
       think();
+
+      // Break the loop if in the empty table
+        if (tableNumber == Main.getNumTables()) {
+            break;
+        }
+
       pickUpFork();
       eat();
       putDownFork();
 
-      synchronized (table) {
-        isDeadlocked = table.isDeadlockDetected(tableNumber);
-        if (isDeadlocked) {
-          break;
+      synchronized (deadlockDetectionLock) {
+        synchronized (table) {
+          isDeadlocked = table.isDeadlockDetected(tableNumber);
+          if (isDeadlocked) {
+            break;
+          }
         }
       }
     }
@@ -56,11 +65,43 @@ public class Philosopher implements Runnable {
   }
   
   public void pickUpFork() {
-    leftFork.lock();
-    System.out.println(name + " picks up left fork from table " + tableNumber);
+    boolean leftForkHeld = false;
+    boolean rightForkHeld = false;
 
-    rightFork.lock();
-    System.out.println(name + " picks up right fork from table " + tableNumber);
+    while (!leftForkHeld || !rightForkHeld) {
+      if (!leftForkHeld && leftFork.tryLock()) {
+        leftForkHeld = true;
+        System.out.println(name + " picks up left fork from table " + tableNumber);
+      }
+
+      if (leftForkHeld && !rightForkHeld && rightFork.tryLock()) {
+        rightForkHeld = true;
+        System.out.println(name + " picks up right fork from table " + tableNumber);
+      }
+
+      // If either fork is not acquired, release any acquired forks and try again
+      if (!leftForkHeld || !rightForkHeld) {
+        if (leftForkHeld) {
+          leftFork.unlock();
+          System.out.println(name + " puts down left fork from table " + tableNumber);
+          leftForkHeld = false;
+        }
+
+        if (rightForkHeld) {
+          rightFork.unlock();
+          System.out.println(name + " puts down right fork from table " + tableNumber);
+          rightForkHeld = false;
+        }
+
+        System.out.println(name + " is waiting");
+
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
   }
   
   public void eat() {
@@ -74,10 +115,22 @@ public class Philosopher implements Runnable {
   }
 
   public void putDownFork() {
-    rightFork.unlock();
-    System.out.println(name + " puts down right fork from table " + tableNumber);
+    synchronized (rightFork) {
+      synchronized (leftFork) {
+        rightFork.unlock();
+        System.out.println(name + " puts down right fork from table " + tableNumber);
+        leftFork.unlock();
+        System.out.println(name + " puts down left fork from table " + tableNumber);
+      }
+    }
+  }
 
-    leftFork.unlock();
-    System.out.println(name + " puts down left fork from table " + tableNumber);
+  // Setters and Getters
+  public String getName() {
+    return name;
+  }
+
+  public void setTableNumber(int tableNumber) {
+    this.tableNumber = tableNumber;
   }
 }
