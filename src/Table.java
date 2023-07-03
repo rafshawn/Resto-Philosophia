@@ -1,4 +1,4 @@
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 /**
  * Table
@@ -6,12 +6,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * Represents a table, 5 of which are occupied by philosophers
  * and the 6th unoccupied at the start.
  */
-
 public class Table {
   private int tableNumber;
   private int seats;
   private Philosopher[] philosophers;
-  private ReentrantLock[] forks;
+  private Semaphore[] forks;
   private boolean[] leftForkInUse;
   private boolean[] rightForkInUse;
 
@@ -20,7 +19,7 @@ public class Table {
     this.tableNumber = tableNumber;
     this.seats = seats;
     this.philosophers = new Philosopher[seats];
-    this.forks = new ReentrantLock[seats];
+    this.forks = new Semaphore[seats];
     this.leftForkInUse = new boolean[seats];
     this.rightForkInUse = new boolean[seats];
 
@@ -28,14 +27,14 @@ public class Table {
     for (int i = 0; i < seats; i++) {
       String philosopherName = Character.toString((char) ('A' + i));
       philosophers[i] = new Philosopher("Philosopher " + philosopherName, this, tableNumber, philosopherName);
-      forks[i] = new ReentrantLock();
+      forks[i] = new Semaphore(1); // Initialize each fork as a binary semaphore with 1 permit
       leftForkInUse[i] = false;
       rightForkInUse[i] = false;
     }
   }
 
   // Methods
-  public ReentrantLock getLeftFork(String philosopherLetter) {
+  public Semaphore getLeftFork(String philosopherLetter) {
     int philosopherIndex = philosopherLetter.charAt(0) - 'A';
     int leftForkIndex = philosopherIndex;
     leftForkInUse[leftForkIndex] = true;
@@ -43,7 +42,7 @@ public class Table {
     return forks[leftForkIndex];
   }
 
-  public ReentrantLock getRightFork(String philosopherLetter) {
+  public Semaphore getRightFork(String philosopherLetter) {
     int philosopherIndex = philosopherLetter.charAt(0) - 'A';
     int rightForkIndex = (philosopherIndex + 1) % seats;
     rightForkInUse[rightForkIndex] = true;
@@ -76,7 +75,7 @@ public class Table {
       }
     }
 
-    System.out.println("No deadlock detected in table" +  tableNumber + ".\n");
+    System.out.println("No deadlock detected in table " +  tableNumber + ".\n");
 
     return false;
   }
@@ -118,5 +117,4 @@ public class Table {
   public int getSeats() {
     return seats;
   }
-  
 }

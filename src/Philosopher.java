@@ -1,17 +1,16 @@
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 /**
  * Philosopher
  * ------------
  * Defines the behaviour of a philosopher according to the protocol.
  */
-
 public class Philosopher implements Runnable {
   private String name;
   private Table table;
   private int tableNumber;
-  private ReentrantLock leftFork;
-  private ReentrantLock rightFork;
+  private Semaphore leftFork;
+  private Semaphore rightFork;
 
   // Constructor
   public Philosopher(String name, Table table, int tableNumber, String philosopherName) {
@@ -32,9 +31,9 @@ public class Philosopher implements Runnable {
       think();
 
       // Break the loop if in the empty table
-        if (tableNumber == Main.getNumTables()) {
-            break;
-        }
+      if (tableNumber == Main.getNumTables()) {
+        break;
+      }
 
       pickUpFork();
       eat();
@@ -58,23 +57,23 @@ public class Philosopher implements Runnable {
     try {
       // Think for a random duration (0 - 10 seconds)
       System.out.println(name + " is thinking");
-      Thread.sleep((int)(Math.random() * 10000));
+      Thread.sleep((int) (Math.random() * 10000));
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
   }
-  
+
   public void pickUpFork() {
     boolean leftForkHeld = false;
     boolean rightForkHeld = false;
 
     while (!leftForkHeld || !rightForkHeld) {
-      if (!leftForkHeld && leftFork.tryLock()) {
+      if (!leftForkHeld && leftFork.tryAcquire()) {
         leftForkHeld = true;
         System.out.println(name + " picks up left fork from table " + tableNumber);
       }
 
-      if (leftForkHeld && !rightForkHeld && rightFork.tryLock()) {
+      if (leftForkHeld && !rightForkHeld && rightFork.tryAcquire()) {
         rightForkHeld = true;
         System.out.println(name + " picks up right fork from table " + tableNumber);
       }
@@ -82,13 +81,13 @@ public class Philosopher implements Runnable {
       // If either fork is not acquired, release any acquired forks and try again
       if (!leftForkHeld || !rightForkHeld) {
         if (leftForkHeld) {
-          leftFork.unlock();
+          leftFork.release();
           System.out.println(name + " puts down left fork from table " + tableNumber);
           leftForkHeld = false;
         }
 
         if (rightForkHeld) {
-          rightFork.unlock();
+          rightFork.release();
           System.out.println(name + " puts down right fork from table " + tableNumber);
           rightForkHeld = false;
         }
@@ -103,26 +102,21 @@ public class Philosopher implements Runnable {
       }
     }
   }
-  
+
   public void eat() {
     try {
       // Eat for a random duration (0 - 5 seconds)
       System.out.println(name + " is eating");
-      Thread.sleep((int)(Math.random() * 5000));
+      Thread.sleep((int) (Math.random() * 5000));
     } catch (InterruptedException ex) {
       ex.printStackTrace();
     }
   }
 
   public void putDownFork() {
-    synchronized (rightFork) {
-      synchronized (leftFork) {
-        rightFork.unlock();
-        System.out.println(name + " puts down right fork from table " + tableNumber);
-        leftFork.unlock();
-        System.out.println(name + " puts down left fork from table " + tableNumber);
-      }
-    }
+    leftFork.release();
+    rightFork.release();
+    System.out.println(name + " puts down both forks from table " + tableNumber);
   }
 
   // Setters and Getters
